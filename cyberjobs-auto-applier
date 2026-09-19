@@ -1,0 +1,82 @@
+"""
+Bulk Email Sender for Job Applications
+Run: python bulk_email.py
+"""
+
+import smtplib
+import csv
+import time
+from email.mime.text import MIMEText
+from email.mime.multipart import MIMEMultipart
+from email.mime.application import MIMEApplication
+
+# ═══════════ CONFIG ═══════════
+SENDER_EMAIL = "muhanmedbilallalu@gmail.com"
+SENDER_PASSWORD = "YOUR_GMAIL_APP_PASSWORD"  # NOT your regular password
+RESUME_PATH = "resume.pdf"
+CSV_FILE = "hr_emails.csv"
+# ══════════════════════════════
+
+SUBJECT = "Cyber Security Analyst | VAPT Specialist | 2+ Years Experience"
+
+BODY = """
+Dear Hiring Team,
+
+I am a Cyber Security Analyst with 2+ years of hands-on experience in 
+Vulnerability Assessment & Penetration Testing (VAPT), specializing in 
+web application security and Active Directory attack paths.
+
+Highlights:
+• 50+ VAPT engagements across fintech, healthcare, and SaaS
+• Active Directory attacks (Kerberoasting, DCSync, BloodHound)
+• Recognized on HackerOne and Bugcrowd for responsible disclosure
+• Certified SOC Analyst + Digital Forensics (EC-Council)
+
+I am open to remote and on-site roles globally. My resume is attached.
+
+Portfolio: bilnxny.github.io
+GitHub: github.com/bilnxny
+
+Best regards,
+Muhammed Bilal TA
++91 73062 27436
+"""
+
+def send_emails():
+    # Setup Gmail SMTP
+    server = smtplib.SMTP("smtp.gmail.com", 587)
+    server.starttls()
+    server.login(SENDER_EMAIL, SENDER_PASSWORD)
+
+    sent = 0
+
+    with open(CSV_FILE, "r") as f:
+        reader = csv.DictReader(f)
+        for row in reader:
+            try:
+                msg = MIMEMultipart()
+                msg["From"] = SENDER_EMAIL
+                msg["To"] = row["email"]
+                msg["Subject"] = SUBJECT
+
+                msg.attach(MIMEText(BODY, "plain"))
+
+                # Attach resume
+                with open(RESUME_PATH, "rb") as f_resume:
+                    part = MIMEApplication(f_resume.read(), _subtype="pdf")
+                    part.add_header("Content-Disposition", "attachment", filename="Muhammed_Bilal_TA_Resume.pdf")
+                    msg.attach(part)
+
+                server.send_message(msg)
+                sent += 1
+                print(f"✅ Sent to {row['email']} (#{sent})")
+                time.sleep(5)  # Avoid spam detection
+
+            except Exception as e:
+                print(f"❌ Failed for {row['email']}: {e}")
+
+    server.quit()
+    print(f"\n🎯 Total sent: {sent}")
+
+if __name__ == "__main__":
+    send_emails()
